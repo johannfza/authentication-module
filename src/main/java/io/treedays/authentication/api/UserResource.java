@@ -29,7 +29,7 @@ public class UserResource {
         return ResponseEntity.ok().body(id);
     }
 
-    @PostMapping("/user/create")
+    @PostMapping("/users/create")
     public ResponseEntity<User> saveUser(@RequestBody User user) {
         User createdUser = userService.saveUser(user);
         String path = String.format("/api/users/%s", createdUser.getId());

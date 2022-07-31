@@ -63,10 +63,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User getUser(String username) throws UserNotFoundException {
         log.info("Fetching user {}", username);
-        User existingUser = userRepository.findByUsername(username).orElseThrow(
+        return userRepository.findByUsername(username).orElseThrow(
                 () -> new UserNotFoundException(username)
         );
-        return existingUser;
     }
 
     @Override
@@ -78,10 +77,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User getUserById(Long id) throws UserNotFoundException {
         log.info("Fetching user {}", id.toString());
-        User existingUser = userRepository.findById(id).orElseThrow(
+        return userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException(id.toString())
         );
-        return existingUser;
     }
 
     @Override
@@ -99,9 +97,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 () -> new UsernameNotFoundException(username)
         );
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        existingUser.getRoles().forEach(role -> {
-            authorities.add(new SimpleGrantedAuthority(role.getName()));
-        });
+        existingUser.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
         return new org.springframework.security.core.userdetails.User(username, existingUser.getPassword(),authorities);
     }
 }
