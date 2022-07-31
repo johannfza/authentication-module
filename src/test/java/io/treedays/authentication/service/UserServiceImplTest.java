@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.swing.text.html.Option;
 import java.util.ArrayList;
@@ -33,8 +34,11 @@ class UserServiceImplTest {
     @Mock
     RoleRepository roleRepository;
 
+    @Mock
+    PasswordEncoder passwordEncoder;
+
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
@@ -50,6 +54,7 @@ class UserServiceImplTest {
         // When
         when(userRepository.findByUsername(username)).thenReturn(Optional.ofNullable(null));
         when(userRepository.save(newUser)).thenReturn(newUser);
+        when(passwordEncoder.encode(any())).thenReturn(any());
 
         // Then
         User savedUser = sut.saveUser(newUser);

@@ -10,15 +10,23 @@ import io.treedays.authentication.service.exceptions.UserAlreadyExistException;
 import io.treedays.authentication.service.exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service @RequiredArgsConstructor @Transactional @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User saveUser(User user) throws UserAlreadyExistException {
@@ -26,6 +34,7 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistException("user already exist");
         });
         log.info("Saving new user {}", user.getName());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -82,5 +91,17 @@ public class UserServiceImpl implements UserService {
                 () -> new RoleNotFoundException(id.toString())
         );
         return null;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User existingUser = userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException(username)
+        );
+        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        existingUser.getRoles().forEach(role -> {
+            authorities.add(new SimpleGrantedAuthority(role.getName()));
+        });
+        return new org.springframework.security.core.userdetails.User(username, existingUser.getPassword(),authorities);
     }
 }
